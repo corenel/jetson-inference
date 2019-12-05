@@ -95,7 +95,8 @@ bool detectNet::init( const char* prototxt, const char* model, const char* mean_
 	printf("          -- mean_binary  %s\n", CHECK_NULL_STR(mean_binary));
 	printf("          -- class_labels %s\n", CHECK_NULL_STR(class_labels));
 	printf("          -- threshold    %f\n", threshold);
-	printf("          -- batch_size   %u\n\n", maxBatchSize);
+	printf("          -- batch_size   %u\n", maxBatchSize);
+	printf("          -- precision    %s\n\n", CHECK_NULL_STR(precisionTypeToStr(precision)));
 
 	//net->EnableDebug();
 	
@@ -191,7 +192,8 @@ detectNet* detectNet::Create( const char* model, const char* class_labels, float
 	printf("          -- output_count '%s'\n", CHECK_NULL_STR(numDetections));
 	printf("          -- class_labels %s\n", CHECK_NULL_STR(class_labels));
 	printf("          -- threshold    %f\n", threshold);
-	printf("          -- batch_size   %u\n\n", maxBatchSize);
+	printf("          -- batch_size   %u\n", maxBatchSize);
+	printf("          -- precision    %s\n\n", CHECK_NULL_STR(precisionTypeToStr(precision)));
 	
 	//net->EnableDebug();
 	
@@ -341,6 +343,17 @@ detectNet* detectNet::Create( int argc, char** argv )
 	if( maxBatchSize < 1 )
 		maxBatchSize = DEFAULT_MAX_BATCH_SIZE;
 
+	// determine model precision
+	const char* precision = cmdLine.GetString("precision");
+	precisionType precision_type = TYPE_FASTEST;
+	if ( strcmp(precision, "fp32") == 0 ) {
+		precision_type = TYPE_FP32;
+	} else if ( strcmp(precision, "fp16") == 0 ) {
+		precision_type = TYPE_FP16;
+	} else if ( strcmp(precision, "int8") == 0 ) {
+		precision_type = TYPE_INT8;
+	}
+
 	// parse the model type
 	const detectNet::NetworkType type = NetworkTypeFromStr(modelName);
 
@@ -365,12 +378,12 @@ detectNet* detectNet::Create( int argc, char** argv )
 		float meanPixel = cmdLine.GetFloat("mean_pixel");
 
 		net = detectNet::Create(prototxt, modelName, meanPixel, class_labels, threshold, input, 
-							out_blob ? NULL : out_cvg, out_blob ? out_blob : out_bbox, maxBatchSize);
+							out_blob ? NULL : out_cvg, out_blob ? out_blob : out_bbox, maxBatchSize, precision_type);
 	}
 	else
 	{
 		// create detectNet from pretrained model
-		net = detectNet::Create(type, threshold, maxBatchSize);
+		net = detectNet::Create(type, threshold, maxBatchSize, precision_type);
 	}
 
 	if( !net )
