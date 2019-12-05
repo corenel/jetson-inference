@@ -344,7 +344,7 @@ detectNet* detectNet::Create( int argc, char** argv )
 		maxBatchSize = DEFAULT_MAX_BATCH_SIZE;
 
 	// determine model precision
-	const char* precision = cmdLine.GetString("precision");
+	const char* precision = cmdLine.GetString("precision", "fastest");
 	precisionType precision_type = TYPE_FASTEST;
 	if ( strcmp(precision, "fp32") == 0 ) {
 		precision_type = TYPE_FP32;
